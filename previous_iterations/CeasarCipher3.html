@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Variable Caesar Cipher - Retro</title>
+  <style>
+    body {
+      background-color: black;
+      color: #00ff00;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 40px;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00ff00;
+      font-size: 28px;
+      margin-bottom: 40px;
+      text-shadow: 0 0 8px #00ff00;
+    }
+
+    label {
+      display: block;
+      margin-top: 20px;
+      font-size: 18px;
+    }
+
+    select, textarea, input, button {
+      width: 100%;
+      background-color: black;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: 16px;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    button {
+      cursor: pointer;
+      text-transform: uppercase;
+      font-weight: bold;
+      margin-top: 20px;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #003300;
+    }
+
+    .output {
+      background-color: black;
+      border: 2px dashed #00ff00;
+      padding: 15px;
+      margin-top: 25px;
+      min-height: 60px;
+      white-space: pre-wrap;
+      font-size: 18px;
+      box-shadow: 0 0 6px #00ff00 inset;
+    }
+
+    ::selection {
+      background-color: #00ff00;
+      color: black;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Variable Caesar Cipher</h1>
+
+  <label for="operation">Choose Operation:</label>
+  <select id="operation" onchange="toggleShiftField()">
+    <option value="encrypt">Encrypt</option>
+    <option value="decrypt">Decrypt</option>
+  </select>
+
+  <label for="message">Message:</label>
+  <textarea id="message" rows="4" placeholder="Type your message here..."></textarea>
+
+  <div id="shiftWrapper">
+    <label for="shifts">Shifts (for decryption):</label>
+    <textarea id="shifts" rows="2" placeholder="Auto-filled after encryption or paste ciphertext::shifts here..."></textarea>
+  </div>
+
+  <button onclick="runCipher()">Execute</button>
+
+  <div class="output" id="output"></div>
+
+  <script>
+    function toggleShiftField() {
+      const op = document.getElementById("operation").value;
+      const shiftWrapper = document.getElementById("shiftWrapper");
+      shiftWrapper.style.display = op === "decrypt" ? "block" : "none";
+    }
+
+    function runCipher() {
+      const operation = document.getElementById("operation").value;
+      const messageEl = document.getElementById("message");
+      const shiftEl = document.getElementById("shifts");
+      const outputEl = document.getElementById("output");
+
+      let result = "";
+      let shifts = [];
+
+      if (operation === "encrypt") {
+        const message = messageEl.value;
+        for (let i = 0; i < message.length; i++) {
+          const ch = message[i];
+          const shift = Math.floor(Math.random() * 26);
+          shifts.push(shift);
+          result += shiftChar(ch, shift);
+        }
+        const combined = result + "::" + shifts.join(",");
+        outputEl.innerText = combined;
+        shiftEl.value = shifts.join(",");
+      }
+
+      else if (operation === "decrypt") {
+        let raw = messageEl.value;
+        let ciphertext = raw;
+        let shiftList = shiftEl.value;
+
+        if (raw.includes("::")) {
+          [ciphertext, shiftList] = raw.split("::");
+          messageEl.value = ciphertext;
+          shiftEl.value = shiftList;
+        }
+
+        const shiftValues = shiftList.split(",").map(s => parseInt(s.trim()));
+        if (shiftValues.length !== ciphertext.length) {
+          outputEl.innerText = "⚠️ Shift list length doesn't match message length.";
+          return;
+        }
+
+        for (let i = 0; i < ciphertext.length; i++) {
+          result += shiftChar(ciphertext[i], 26 - shiftValues[i]);
+        }
+
+        animateOutput(result, outputEl);
+      }
+    }
+
+    function shiftChar(ch, shift) {
+      if (ch >= 'A' && ch <= 'Z') {
+        const base = 'A'.charCodeAt(0);
+        return String.fromCharCode(((ch.charCodeAt(0) - base + shift) % 26) + base);
+      } else if (ch >= 'a' && ch <= 'z') {
+        const base = 'a'.charCodeAt(0);
+        return String.fromCharCode(((ch.charCodeAt(0) - base + shift) % 26) + base);
+      } else {
+        return ch;
+      }
+    }
+
+    function animateOutput(text, element) {
+      element.innerText = "";
+      let i = 0;
+      const interval = setInterval(() => {
+        element.innerText += text[i];
+        i++;
+        if (i >= text.length) clearInterval(interval);
+      }, 30);
+    }
+
+    // Default to encryption mode on load
+    toggleShiftField();
+  </script>
+
+</body>
+</html>

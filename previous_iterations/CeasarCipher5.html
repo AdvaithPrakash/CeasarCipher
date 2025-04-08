@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Variable Caesar Cipher - Retro</title>
+  <style>
+    body {
+      background-color: black;
+      color: #00ff00;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 40px;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 30px;
+      text-shadow: 0 0 8px #00ff00;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    select, textarea, input, button {
+      width: 100%;
+      background-color: black;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      padding: 10px;
+      font-size: 16px;
+      font-family: 'Courier New', Courier, monospace;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      cursor: pointer;
+      text-transform: uppercase;
+      font-weight: bold;
+      margin-top: 10px;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #003300;
+    }
+
+    .output {
+      background-color: black;
+      border: 2px dashed #00ff00;
+      padding: 15px;
+      margin-top: 15px;
+      min-height: 60px;
+      white-space: pre-wrap;
+      font-size: 18px;
+      box-shadow: 0 0 6px #00ff00 inset;
+      position: relative;
+    }
+
+    .output span {
+      display: block;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #00ff00;
+      color: black;
+      font-size: 12px;
+      padding: 4px 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background-color: #99ff99;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Variable Caesar Cipher</h1>
+
+  <div class="form-group">
+    <label for="operation">Choose Operation:</label>
+    <select id="operation" onchange="toggleShiftField()">
+      <option value="encrypt">Encrypt</option>
+      <option value="decrypt">Decrypt</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="message">Message:</label>
+    <textarea id="message" rows="4" placeholder="Type your message here..."></textarea>
+  </div>
+
+  <div class="form-group hidden" id="shiftInputWrapper">
+    <label for="shifts">Shift Key (for decryption):</label>
+    <textarea id="shifts" rows="2" placeholder="Paste shift key here..."></textarea>
+  </div>
+
+  <button onclick="runCipher()">Execute</button>
+
+  <div class="form-group">
+    <label>Encrypted/Decrypted Message:</label>
+    <div class="output" id="outputMessage">
+      <span id="messageText"></span>
+      <button class="copy-btn" onclick="copyText('messageText')">Copy</button>
+    </div>
+  </div>
+
+  <div class="form-group" id="shiftOutputWrapper">
+    <label>Shift Key:</label>
+    <div class="output" id="outputShift">
+      <span id="shiftText"></span>
+      <button class="copy-btn" onclick="copyText('shiftText')">Copy</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleShiftField() {
+      const op = document.getElementById("operation").value;
+      const shiftInputWrapper = document.getElementById("shiftInputWrapper");
+      const shiftOutputWrapper = document.getElementById("shiftOutputWrapper");
+      shiftInputWrapper.classList.toggle("hidden", op !== "decrypt");
+      shiftOutputWrapper.classList.toggle("hidden", op !== "encrypt");
+    }
+
+    function runCipher() {
+      const operation = document.getElementById("operation").value;
+      const messageEl = document.getElementById("message");
+      const shiftEl = document.getElementById("shifts");
+      const msgText = document.getElementById("messageText");
+      const shiftText = document.getElementById("shiftText");
+
+      msgText.innerText = "";
+      shiftText.innerText = "";
+
+      if (messageEl.value.trim() === "") {
+        msgText.innerText = "⚠️ Please enter a message.";
+        return;
+      }
+
+      let result = "";
+      let shifts = [];
+
+      if (operation === "encrypt") {
+        const message = messageEl.value;
+        for (let i = 0; i < message.length; i++) {
+          const ch = message[i];
+          const shift = Math.floor(Math.random() * 26);
+          shifts.push(shift);
+          result += shiftChar(ch, shift);
+        }
+        msgText.innerText = result;
+        shiftText.innerText = formatShifts(shifts);
+      }
+
+      else if (operation === "decrypt") {
+        const ciphertext = messageEl.value;
+        const shiftList = shiftEl.value;
+
+        const shiftValues = shiftList.split(",")
+          .map(s => parseInt(s.trim()))
+          .filter(n => !isNaN(n));
+
+        if (shiftValues.length !== ciphertext.length) {
+          msgText.innerText = "⚠️ Shift list length doesn't match message length.";
+          return;
+        }
+
+        for (let i = 0; i < ciphertext.length; i++) {
+          result += shiftChar(ciphertext[i], 26 - shiftValues[i]);
+        }
+
+        animateOutput(result, msgText);
+      }
+    }
+
+    function shiftChar(ch, shift) {
+      if (ch >= 'A' && ch <= 'Z') {
+        const base = 'A'.charCodeAt(0);
+        return String.fromCharCode(((ch.charCodeAt(0) - base + shift) % 26) + base);
+      } else if (ch >= 'a' && ch <= 'z') {
+        const base = 'a'.charCodeAt(0);
+        return String.fromCharCode(((ch.charCodeAt(0) - base + shift) % 26) + base);
+      } else {
+        return ch;
+      }
+    }
+
+    function animateOutput(text, element) {
+      element.innerText = "";
+      let i = 0;
+      const interval = setInterval(() => {
+        element.innerText += text[i];
+        i++;
+        if (i >= text.length) clearInterval(interval);
+      }, 30);
+    }
+
+    function formatShifts(shifts, perLine = 10) {
+      let output = "";
+      for (let i = 0; i < shifts.length; i++) {
+        output += shifts[i];
+        if (i < shifts.length - 1) output += ",";
+        if ((i + 1) % perLine === 0) output += "\n";
+      }
+      return output.trim();
+    }
+
+    function copyText(spanId) {
+      const text = document.getElementById(spanId).innerText.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Copied!");
+      }).catch(err => {
+        alert("Copy failed: " + err);
+      });
+    }
+
+    toggleShiftField();
+  </script>
+
+</body>
+</html>

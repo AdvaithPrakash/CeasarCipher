@@ -104,4 +104,4 @@ This was a great learning experience that strengthened both my **technical probl
 ## 📄 License
 
 This project is for educational and personal use.  
-Crafted with 💚 by **Advaith Kurma Prakash**
+Crafted with 💚 by **Advaith Prakash**

@@ -25,7 +25,6 @@ A sleek, retro-themed web app that encrypts messages using a **random Caesar shi
 | File            | Description                          |
 |-----------------|--------------------------------------|
 | `index.html`    | Main HTML file and logic             |
-| `favicon.png`   | Green “C” favicon for the browser tab |
 | `README.md`     | Project overview (you’re reading it) |
 
 ---
